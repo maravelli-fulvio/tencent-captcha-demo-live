@@ -9,9 +9,6 @@ const sdkPill = document.getElementById("sdk-pill");
 const latencyChallengeEl = document.getElementById("latency-challenge");
 const latencyBackendEl = document.getElementById("latency-backend");
 const latencyTotalEl = document.getElementById("latency-total");
-const latencySamplesEl = document.getElementById("latency-samples");
-const latencyAvgEl = document.getElementById("latency-avg");
-const latencyMedianEl = document.getElementById("latency-median");
 const latencyP95El = document.getElementById("latency-p95");
 const resetMetricsBtn = document.getElementById("reset-metrics-btn");
 const clearLogBtn = document.getElementById("clear-log-btn");
@@ -62,19 +59,11 @@ function percentile(values, p) {
 
 function updateBackendStats() {
   const n = backendLatencyHistory.length;
-  latencySamplesEl.textContent = String(n);
   if (!n) {
-    latencyAvgEl.textContent = "-- ms";
-    latencyMedianEl.textContent = "-- ms";
     latencyP95El.textContent = "-- ms";
     return;
   }
-  const sum = backendLatencyHistory.reduce((acc, v) => acc + v, 0);
-  const avg = sum / n;
-  const median = percentile(backendLatencyHistory, 50);
   const p95 = percentile(backendLatencyHistory, 95);
-  latencyAvgEl.textContent = formatMs(avg);
-  latencyMedianEl.textContent = formatMs(median);
   latencyP95El.textContent = formatMs(p95);
 }
 
