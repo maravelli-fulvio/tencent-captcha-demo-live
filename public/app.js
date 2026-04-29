@@ -9,10 +9,17 @@ const sdkPill = document.getElementById("sdk-pill");
 const latencyChallengeEl = document.getElementById("latency-challenge");
 const latencyBackendEl = document.getElementById("latency-backend");
 const latencyTotalEl = document.getElementById("latency-total");
+const latencySamplesEl = document.getElementById("latency-samples");
+const latencyAvgEl = document.getElementById("latency-avg");
+const latencyMedianEl = document.getElementById("latency-median");
+const latencyP95El = document.getElementById("latency-p95");
+const resetMetricsBtn = document.getElementById("reset-metrics-btn");
+const clearLogBtn = document.getElementById("clear-log-btn");
 
 let appConfig = { appId: "", demoMode: true };
 let captchaSession = { verified: false, ticket: "", randstr: "" };
 let sdkLoaded = false;
+const backendLatencyHistory = [];
 
 function writeLog(message, data) {
   const time = new Date().toLocaleTimeString("pt-BR");
@@ -44,6 +51,31 @@ function setLatencyCards({ challengeMs, backendMs, totalMs }) {
   latencyChallengeEl.textContent = formatMs(challengeMs);
   latencyBackendEl.textContent = formatMs(backendMs);
   latencyTotalEl.textContent = formatMs(totalMs);
+}
+
+function percentile(values, p) {
+  if (!values.length) return null;
+  const sorted = [...values].sort((a, b) => a - b);
+  const idx = Math.ceil((p / 100) * sorted.length) - 1;
+  return sorted[Math.max(0, Math.min(idx, sorted.length - 1))];
+}
+
+function updateBackendStats() {
+  const n = backendLatencyHistory.length;
+  latencySamplesEl.textContent = String(n);
+  if (!n) {
+    latencyAvgEl.textContent = "-- ms";
+    latencyMedianEl.textContent = "-- ms";
+    latencyP95El.textContent = "-- ms";
+    return;
+  }
+  const sum = backendLatencyHistory.reduce((acc, v) => acc + v, 0);
+  const avg = sum / n;
+  const median = percentile(backendLatencyHistory, 50);
+  const p95 = percentile(backendLatencyHistory, 95);
+  latencyAvgEl.textContent = formatMs(avg);
+  latencyMedianEl.textContent = formatMs(median);
+  latencyP95El.textContent = formatMs(p95);
 }
 
 async function loadConfig() {
@@ -195,6 +227,8 @@ async function startCaptchaValidation(flowMode) {
       });
     }
     setLatencyCards({ challengeMs, backendMs, totalMs });
+    backendLatencyHistory.push(backendMs);
+    updateBackendStats();
 
     if (result.ok) {
       captchaSession = { verified: true, ...tokens };
@@ -233,8 +267,18 @@ form.addEventListener("submit", (event) => {
 
 captchaBtn.addEventListener("click", () => startCaptchaValidation("mock"));
 captchaRealBtn.addEventListener("click", () => startCaptchaValidation("real"));
+resetMetricsBtn.addEventListener("click", () => {
+  backendLatencyHistory.length = 0;
+  setLatencyCards({ challengeMs: null, backendMs: null, totalMs: null });
+  updateBackendStats();
+  writeLog("Métricas de latência foram resetadas");
+});
+clearLogBtn.addEventListener("click", () => {
+  logOutput.textContent = "Aguardando ações...";
+});
 
 (async function boot() {
+  updateBackendStats();
   await loadConfig();
   if (appConfig.appId) {
     const script = document.createElement("script");

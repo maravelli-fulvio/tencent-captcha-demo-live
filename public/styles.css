@@ -198,6 +198,19 @@ h2 {
   font-weight: 800;
 }
 
+.stats-grid .latency-value {
+  font-size: 22px;
+}
+
+.action-card {
+  display: flex;
+  align-items: center;
+}
+
+.full-width {
+  width: 100%;
+}
+
 .kpi-card {
   background: linear-gradient(140deg, rgba(21, 44, 100, 0.62), rgba(11, 44, 66, 0.5));
   border: 1px solid rgba(126, 166, 255, 0.24);

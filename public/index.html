@@ -54,7 +54,7 @@
 
       <section class="latency-grid">
         <article class="latency-card">
-          <p class="latency-label">Latência desafio (técnica)</p>
+          <p class="latency-label">Latencia Front End</p>
           <p class="latency-value" id="latency-challenge">-- ms</p>
         </article>
         <article class="latency-card">
@@ -64,6 +64,38 @@
         <article class="latency-card">
           <p class="latency-label">Latência total (técnica)</p>
           <p class="latency-value" id="latency-total">-- ms</p>
+        </article>
+      </section>
+
+      <section class="latency-grid stats-grid">
+        <article class="latency-card">
+          <p class="latency-label">Amostras backend</p>
+          <p class="latency-value" id="latency-samples">0</p>
+        </article>
+        <article class="latency-card">
+          <p class="latency-label">Média backend</p>
+          <p class="latency-value" id="latency-avg">-- ms</p>
+        </article>
+        <article class="latency-card">
+          <p class="latency-label">Mediana backend</p>
+          <p class="latency-value" id="latency-median">-- ms</p>
+        </article>
+      </section>
+
+      <section class="latency-grid stats-grid">
+        <article class="latency-card">
+          <p class="latency-label">P95 backend</p>
+          <p class="latency-value" id="latency-p95">-- ms</p>
+        </article>
+        <article class="latency-card action-card">
+          <button type="button" id="reset-metrics-btn" class="secondary full-width">
+            Reset métricas
+          </button>
+        </article>
+        <article class="latency-card action-card">
+          <button type="button" id="clear-log-btn" class="secondary full-width">
+            Limpar log
+          </button>
         </article>
       </section>
 
