@@ -224,11 +224,12 @@ async function startCaptchaValidation(flowMode) {
       setCaptchaState(true, `Aprovado (${result.mode}) - score ${result.riskScore}`);
     } else {
       captchaSession = { verified: false, ticket: "", randstr: "" };
-      setCaptchaState(false, `Reprovado (${result.mode}) - ${result.detail || "sem detalhe"}`);
+      setCaptchaState(false, "Validação não concluída. Tente novamente.");
+      writeLog("Validação retornou não aprovada", result);
     }
   } catch (error) {
     captchaSession = { verified: false, ticket: "", randstr: "" };
-    setCaptchaState(false, `Falha na validação: ${error.message}`);
+    setCaptchaState(false, "Não foi possível validar agora. Tente novamente.");
     writeLog("Erro no fluxo CAPTCHA", { error: error.message });
     setLatencyCards({ challengeMs: null, backendMs: null, totalMs: null });
   } finally {

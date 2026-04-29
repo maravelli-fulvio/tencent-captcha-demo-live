@@ -183,8 +183,9 @@ app.post("/api/verify-captcha", async (req, res) => {
   } catch (error) {
     return res.status(500).json({
       ok: false,
-      message: "Erro ao validar captcha",
-      error: error.message
+      mode: "real",
+      detail: error.message || "Erro ao validar captcha",
+      riskScore: 0
     });
   }
 });
