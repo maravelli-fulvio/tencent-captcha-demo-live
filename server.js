@@ -1,6 +1,7 @@
 const express = require("express");
 const path = require("path");
 const crypto = require("crypto");
+const fs = require("fs");
 require("dotenv").config({ path: path.join(__dirname, ".env") });
 
 const app = express();
@@ -186,10 +187,24 @@ app.post("/api/verify-captcha", async (req, res) => {
   }
 });
 
+const indexPath = path.join(__dirname, "public", "index.html");
+
+app.get("/", (_req, res) => {
+  if (!fs.existsSync(indexPath)) {
+    return res.status(500).send("index.html not found in /public");
+  }
+  return res.sendFile(indexPath);
+});
+
 app.get("*", (_req, res) => {
-  res.sendFile(path.join(__dirname, "public", "index.html"));
+  if (!fs.existsSync(indexPath)) {
+    return res.status(404).send("Not Found");
+  }
+  return res.sendFile(indexPath);
 });
 
 app.listen(PORT, () => {
   console.log(`Tencent CAPTCHA live demo running on http://localhost:${PORT}`);
+  console.log(`Static index path: ${indexPath}`);
+  console.log(`Index exists: ${fs.existsSync(indexPath)}`);
 });
