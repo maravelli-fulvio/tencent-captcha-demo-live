@@ -1,0 +1,22 @@
+services:
+  - type: web
+    name: tencent-captcha-demo-live
+    env: node
+    plan: free
+    buildCommand: npm ci
+    startCommand: npm start
+    autoDeploy: false
+    healthCheckPath: /healthz
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: DEMO_MODE
+        value: "false"
+      - key: TENCENT_CAPTCHA_ENDPOINT
+        value: captcha.intl.tencentcloudapi.com
+      - key: TENCENT_SECRET_ID
+        sync: false
+      - key: TENCENT_CAPTCHA_APP_ID
+        sync: false
+      - key: TENCENT_CAPTCHA_APP_SECRET_KEY
+        sync: false

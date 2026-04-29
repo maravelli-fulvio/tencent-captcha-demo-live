@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Tencent CAPTCHA Demo</title>
+    <link rel="stylesheet" href="/styles.css" />
+  </head>
+  <body>
+    <header class="topbar">
+      <div class="container topbar-inner">
+        <div class="brand">
+          <div class="brand-mark" aria-hidden="true"></div>
+          <div>
+            <p class="brand-name">Tencent Cloud</p>
+            <p class="brand-sub">CAPTCHA Security Experience</p>
+          </div>
+        </div>
+        <button class="topbar-cta" type="button">Executive Preview</button>
+      </div>
+    </header>
+
+    <main class="container">
+      <section class="hero">
+        <div class="hero-overlay"></div>
+        <div class="hero-content">
+          <p class="hero-kicker">Anti-Bot Platform</p>
+          <h1>Tencent Cloud CAPTCHA - Executive Demo</h1>
+          <p class="subtitle">
+            Demonstração com visual moderno para reuniões comerciais e PoC técnico-operacional.
+          </p>
+          <div class="pill-row">
+            <span class="pill" id="mode-pill">Modo: carregando...</span>
+            <span class="pill" id="sdk-pill">SDK: carregando...</span>
+            <span class="pill">Arquitetura: Frontend + API + Tencent</span>
+          </div>
+        </div>
+      </section>
+
+      <section class="kpi-grid">
+        <article class="kpi-card">
+          <h3>Segurança</h3>
+          <p>Validação de token no backend</p>
+        </article>
+        <article class="kpi-card">
+          <h3>Experiência</h3>
+          <p>Widget visual Tencent + fallback seguro</p>
+        </article>
+        <article class="kpi-card">
+          <h3>PoC Readiness</h3>
+          <p>Evidência em tempo real para cliente</p>
+        </article>
+      </section>
+
+      <section class="latency-grid">
+        <article class="latency-card">
+          <p class="latency-label">Latência desafio (técnica)</p>
+          <p class="latency-value" id="latency-challenge">-- ms</p>
+        </article>
+        <article class="latency-card">
+          <p class="latency-label">Latência backend</p>
+          <p class="latency-value" id="latency-backend">-- ms</p>
+        </article>
+        <article class="latency-card">
+          <p class="latency-label">Latência total (técnica)</p>
+          <p class="latency-value" id="latency-total">-- ms</p>
+        </article>
+      </section>
+
+      <section class="card form-card">
+        <h2>1) Formulário protegido</h2>
+        <form id="demo-form">
+          <label for="email">E-mail</label>
+          <input id="email" type="email" placeholder="cliente@empresa.com" required />
+
+          <label for="message">Mensagem</label>
+          <textarea
+            id="message"
+            rows="4"
+            placeholder="Digite uma mensagem de teste para a demo"
+            required
+          ></textarea>
+
+          <div class="captcha-row">
+            <button type="button" id="captcha-btn" class="secondary">Demo rápida (mock)</button>
+            <button type="button" id="captcha-real-btn">Executar CAPTCHA real</button>
+            <span id="captcha-status">Aguardando validação</span>
+          </div>
+
+          <button type="submit" id="submit-btn" disabled>Enviar formulário</button>
+        </form>
+        <button id="captcha-trigger" type="button" hidden aria-hidden="true"></button>
+      </section>
+
+      <section class="card log-card">
+        <h2>2) Telemetria da demonstração</h2>
+        <pre id="log-output">Aguardando ações...</pre>
+      </section>
+    </main>
+
+    <script src="/app.js"></script>
+  </body>
+  </html>
