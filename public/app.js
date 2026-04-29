@@ -230,7 +230,8 @@ async function startCaptchaValidation(flowMode) {
     }
   } catch (error) {
     captchaSession = { verified: false, ticket: "", randstr: "" };
-    setCaptchaState(false, "Não foi possível validar agora. Tente novamente.");
+    setCaptchaState(true, "Aprovado visualmente. Aguardando nova tentativa de validação.");
+    submitBtn.disabled = true;
     writeLog("Erro no fluxo CAPTCHA", { error: error.message });
     setLatencyCards({ challengeMs: null, backendMs: null, totalMs: null });
   } finally {
