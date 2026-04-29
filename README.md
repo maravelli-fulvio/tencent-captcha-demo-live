@@ -22,6 +22,7 @@ Projeto paralelo ao localhost, pronto para publicar em domínio real.
 PORT=3000
 DEMO_MODE=false
 TENCENT_SECRET_ID=seu_secret_id
+TENCENT_SECRET_KEY=seu_secret_key
 TENCENT_CAPTCHA_APP_ID=seu_app_id
 TENCENT_CAPTCHA_APP_SECRET_KEY=seu_app_secret_key
 TENCENT_CAPTCHA_ENDPOINT=captcha.intl.tencentcloudapi.com
@@ -34,6 +35,7 @@ TENCENT_CAPTCHA_ENDPOINT=captcha.intl.tencentcloudapi.com
 3. Aponte para o repositório com `render.yaml`.
 4. Preencha os secrets:
    - `TENCENT_SECRET_ID`
+   - `TENCENT_SECRET_KEY`
    - `TENCENT_CAPTCHA_APP_ID`
    - `TENCENT_CAPTCHA_APP_SECRET_KEY`
 5. Deploy.

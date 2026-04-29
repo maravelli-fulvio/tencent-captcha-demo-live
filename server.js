@@ -11,12 +11,14 @@ app.set("trust proxy", true);
 const APP_ID = process.env.TENCENT_CAPTCHA_APP_ID || "";
 const APP_SECRET = process.env.TENCENT_CAPTCHA_APP_SECRET_KEY || "";
 const SECRET_ID = process.env.TENCENT_SECRET_ID || "";
+const SECRET_KEY = process.env.TENCENT_SECRET_KEY || "";
 const CAPTCHA_ENDPOINT =
   process.env.TENCENT_CAPTCHA_ENDPOINT || "captcha.intl.tencentcloudapi.com";
 const DEMO_MODE = String(process.env.DEMO_MODE || "false").toLowerCase() === "true";
 
 app.use(express.json());
 app.use(express.static(path.join(__dirname, "public")));
+app.use("/public", express.static(path.join(__dirname, "public")));
 
 app.get("/healthz", (_req, res) => {
   res.status(200).json({ ok: true, service: "tencent-captcha-demo-live" });
@@ -91,7 +93,7 @@ async function verifyWithTencent({ ticket, randstr, userIp }) {
     hashedCanonicalRequest
   ].join("\n");
 
-  const secretDate = crypto.createHmac("sha256", "TC3" + APP_SECRET).update(date).digest();
+  const secretDate = crypto.createHmac("sha256", "TC3" + SECRET_KEY).update(date).digest();
   const secretService = crypto.createHmac("sha256", secretDate).update("captcha").digest();
   const secretSigning = crypto
     .createHmac("sha256", secretService)
@@ -161,12 +163,12 @@ app.post("/api/verify-captcha", async (req, res) => {
     if (DEMO_MODE) {
       verification = mockCaptchaVerification(ticket, randstr);
     } else {
-      const hasRequiredEnv = APP_ID && APP_SECRET && SECRET_ID;
+      const hasRequiredEnv = APP_ID && APP_SECRET && SECRET_ID && SECRET_KEY;
       if (!hasRequiredEnv) {
         return res.status(500).json({
           ok: false,
           message:
-            "Configure TENCENT_CAPTCHA_APP_ID, TENCENT_CAPTCHA_APP_SECRET_KEY e TENCENT_SECRET_ID no .env"
+            "Configure TENCENT_SECRET_ID, TENCENT_SECRET_KEY, TENCENT_CAPTCHA_APP_ID e TENCENT_CAPTCHA_APP_SECRET_KEY no .env"
         });
       }
       verification = await verifyWithTencent({ ticket, randstr, userIp });

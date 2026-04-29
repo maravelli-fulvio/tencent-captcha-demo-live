@@ -16,6 +16,8 @@ services:
         value: captcha.intl.tencentcloudapi.com
       - key: TENCENT_SECRET_ID
         sync: false
+      - key: TENCENT_SECRET_KEY
+        sync: false
       - key: TENCENT_CAPTCHA_APP_ID
         sync: false
       - key: TENCENT_CAPTCHA_APP_SECRET_KEY
