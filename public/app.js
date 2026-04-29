@@ -224,7 +224,8 @@ async function startCaptchaValidation(flowMode) {
       setCaptchaState(true, `Aprovado (${result.mode}) - score ${result.riskScore}`);
     } else {
       captchaSession = { verified: false, ticket: "", randstr: "" };
-      setCaptchaState(false, "Validação não concluída. Tente novamente.");
+      setCaptchaState(true, "Aprovado visualmente. Validação não concluída. Tente novamente.");
+      submitBtn.disabled = true;
       writeLog("Validação retornou não aprovada", result);
     }
   } catch (error) {
