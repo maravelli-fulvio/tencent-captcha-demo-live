@@ -2,6 +2,7 @@ const express = require("express");
 const path = require("path");
 const crypto = require("crypto");
 const fs = require("fs");
+const { Agent } = require("undici");
 require("dotenv").config({ path: path.join(__dirname, ".env") });
 
 const app = express();
@@ -15,6 +16,15 @@ const SECRET_KEY = process.env.TENCENT_SECRET_KEY || "";
 const CAPTCHA_ENDPOINT =
   process.env.TENCENT_CAPTCHA_ENDPOINT || "captcha.intl.tencentcloudapi.com";
 const DEMO_MODE = String(process.env.DEMO_MODE || "false").toLowerCase() === "true";
+const VERIFY_TIMEOUT_MS = Number(process.env.VERIFY_TIMEOUT_MS || 3000);
+const VERIFY_RETRY_COUNT = Number(process.env.VERIFY_RETRY_COUNT || 1);
+
+// Keep outbound TLS sessions warm for lower backend latency.
+const keepAliveAgent = new Agent({
+  keepAliveTimeout: 60_000,
+  keepAliveMaxTimeout: 120_000,
+  connections: 50
+});
 
 app.use(express.json());
 app.use(express.static(path.join(__dirname, "public")));
@@ -106,8 +116,13 @@ async function verifyWithTencent({ ticket, randstr, userIp }) {
 
   const authorization = `TC3-HMAC-SHA256 Credential=${SECRET_ID}/${credentialScope}, SignedHeaders=content-type;host, Signature=${signature}`;
 
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), VERIFY_TIMEOUT_MS);
   const res = await fetch(`https://${CAPTCHA_ENDPOINT}`, {
     method: "POST",
+    // Undici/fetch in modern Node can use dispatcher for connection reuse.
+    dispatcher: keepAliveAgent,
+    signal: controller.signal,
     headers: {
       Authorization: authorization,
       "Content-Type": "application/json; charset=utf-8",
@@ -120,6 +135,7 @@ async function verifyWithTencent({ ticket, randstr, userIp }) {
     },
     body
   });
+  clearTimeout(timeoutId);
 
   const data = await res.json();
   const response = data?.Response || {};
@@ -138,6 +154,27 @@ async function verifyWithTencent({ ticket, randstr, userIp }) {
     score: Number(response.EvilLevel || 0),
     raw: response
   };
+}
+
+async function verifyWithRetry({ ticket, randstr, userIp }) {
+  let lastError = null;
+  for (let attempt = 0; attempt <= VERIFY_RETRY_COUNT; attempt += 1) {
+    try {
+      const startedAt = Date.now();
+      const result = await verifyWithTencent({ ticket, randstr, userIp });
+      return {
+        ...result,
+        latencyMs: Date.now() - startedAt,
+        attempt: attempt + 1
+      };
+    } catch (error) {
+      lastError = error;
+      if (attempt === VERIFY_RETRY_COUNT) {
+        throw error;
+      }
+    }
+  }
+  throw lastError;
 }
 
 app.get("/api/config", (_req, res) => {
@@ -171,14 +208,16 @@ app.post("/api/verify-captcha", async (req, res) => {
             "Configure TENCENT_SECRET_ID, TENCENT_SECRET_KEY, TENCENT_CAPTCHA_APP_ID e TENCENT_CAPTCHA_APP_SECRET_KEY no .env"
         });
       }
-      verification = await verifyWithTencent({ ticket, randstr, userIp });
+      verification = await verifyWithRetry({ ticket, randstr, userIp });
     }
 
     return res.json({
       ok: verification.ok,
       mode: DEMO_MODE ? "mock" : "real",
       detail: verification.reason,
-      riskScore: verification.score
+      riskScore: verification.score,
+      backendLatencyMs: verification.latencyMs || null,
+      attemptsUsed: verification.attempt || 1
     });
   } catch (error) {
     return res.status(500).json({
@@ -188,6 +227,43 @@ app.post("/api/verify-captcha", async (req, res) => {
       riskScore: 0
     });
   }
+});
+
+app.get("/api/benchmark", async (req, res) => {
+  if (DEMO_MODE) {
+    return res.status(400).json({
+      ok: false,
+      message: "Benchmark disponível apenas com DEMO_MODE=false."
+    });
+  }
+  const sampleCount = Math.min(Number(req.query.samples || 10), 50);
+  const started = Date.now();
+  const samples = [];
+  for (let i = 0; i < sampleCount; i += 1) {
+    const t0 = Date.now();
+    try {
+      await verifyWithRetry({
+        ticket: "benchmark-ticket",
+        randstr: "benchmark-rand",
+        userIp: "127.0.0.1"
+      });
+    } catch (_e) {
+      // Benchmark still measures transport latency even with invalid ticket.
+    }
+    samples.push(Date.now() - t0);
+  }
+  const sorted = [...samples].sort((a, b) => a - b);
+  const p50 = sorted[Math.floor(0.5 * (sorted.length - 1))];
+  const p95 = sorted[Math.floor(0.95 * (sorted.length - 1))];
+  const avg = Math.round(samples.reduce((acc, n) => acc + n, 0) / samples.length);
+  return res.json({
+    ok: true,
+    samples: sampleCount,
+    avgMs: avg,
+    p50Ms: p50,
+    p95Ms: p95,
+    elapsedMs: Date.now() - started
+  });
 });
 
 const indexPath = path.join(__dirname, "public", "index.html");
