@@ -22,3 +22,5 @@ services:
         sync: false
       - key: TENCENT_CAPTCHA_APP_SECRET_KEY
         sync: false
+      - key: POC_STRUCTURED_LOG
+        value: "false"

@@ -18,6 +18,19 @@ const CAPTCHA_ENDPOINT =
 const DEMO_MODE = String(process.env.DEMO_MODE || "false").toLowerCase() === "true";
 const VERIFY_TIMEOUT_MS = Number(process.env.VERIFY_TIMEOUT_MS || 3000);
 const VERIFY_RETRY_COUNT = Number(process.env.VERIFY_RETRY_COUNT || 1);
+const POC_STRUCTURED_LOG =
+  String(process.env.POC_STRUCTURED_LOG || "false").toLowerCase() === "true";
+
+function pocStructuredLog(fields) {
+  if (!POC_STRUCTURED_LOG) return;
+  console.log(
+    JSON.stringify({
+      ts: new Date().toISOString(),
+      source: "tencent-captcha-demo-live",
+      ...fields
+    })
+  );
+}
 
 // Keep outbound TLS sessions warm for lower backend latency.
 const keepAliveAgent = new Agent({
@@ -211,15 +224,31 @@ app.post("/api/verify-captcha", async (req, res) => {
       verification = await verifyWithRetry({ ticket, randstr, userIp });
     }
 
-    return res.json({
+    const payload = {
       ok: verification.ok,
       mode: DEMO_MODE ? "mock" : "real",
       detail: verification.reason,
       riskScore: verification.score,
       backendLatencyMs: verification.latencyMs || null,
       attemptsUsed: verification.attempt || 1
+    };
+    pocStructuredLog({
+      event: "captcha_verify_result",
+      ok: payload.ok,
+      mode: payload.mode,
+      backendLatencyMs: payload.backendLatencyMs,
+      attemptsUsed: payload.attemptsUsed,
+      riskScore: payload.riskScore,
+      captchaAppId: APP_ID || undefined
+      // intentionally no ticket/randstr/userIp — avoid PII in log pipelines
     });
+    return res.json(payload);
   } catch (error) {
+    pocStructuredLog({
+      event: "captcha_verify_error",
+      ok: false,
+      detail: error.message || "Erro ao validar captcha"
+    });
     return res.status(500).json({
       ok: false,
       mode: "real",

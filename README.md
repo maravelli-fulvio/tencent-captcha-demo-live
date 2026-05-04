@@ -65,3 +65,7 @@ Depois, no Render:
 ## Observação comercial
 
 Em domínio real, o comportamento do widget e políticas de navegador costumam refletir melhor o cenário de produção do cliente.
+
+## Guia PoC (checklist cliente, latência, CLS)
+
+Ver **[docs/poc-guia.md](./docs/poc-guia.md)** — o que o demo cobre, o que é Console Tencent, e como encaixar **View Statistics**, **CLS** e log estruturado (`POC_STRUCTURED_LOG=true`).
