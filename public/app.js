@@ -87,6 +87,18 @@ async function verifyCaptcha(ticket, randstr) {
   return res.json();
 }
 
+/** Gera comando curl com ticket/randstr atuais (válido no zsh/bash). Usa o mesmo origin da página. */
+function buildCurlVerifyLatencyCommand(ticket, randstr) {
+  const url = `${window.location.origin}/api/verify-captcha`;
+  const body = JSON.stringify({ ticket, randstr });
+  return (
+    `curl -s -w "\\ntime_total_s: %{time_total}\\n" ` +
+    `-X POST ${JSON.stringify(url)} ` +
+    `-H "Content-Type: application/json" ` +
+    `-d ${JSON.stringify(body)}`
+  );
+}
+
 async function runTencentCaptchaFlow(triggerElement) {
   if (!window.TencentCaptcha || !appConfig.appId) {
     throw new Error("SDK TencentCaptcha não carregada ou appId ausente");
@@ -204,6 +216,10 @@ async function startCaptchaValidation(flowMode) {
       challengeMs = tokens.widgetOpenMs ?? 0;
       writeLog("Ticket recebido da Tencent", tokens);
     }
+
+    writeLog("Medição no terminal (copiar — ticket expira rápido na Tencent)", {
+      comando: buildCurlVerifyLatencyCommand(tokens.ticket, tokens.randstr)
+    });
 
     const backendStart = performance.now();
     const result = await verifyCaptcha(tokens.ticket, tokens.randstr);
