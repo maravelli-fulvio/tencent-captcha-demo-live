@@ -14,7 +14,8 @@ const APP_SECRET = process.env.TENCENT_CAPTCHA_APP_SECRET_KEY || "";
 const SECRET_ID = process.env.TENCENT_SECRET_ID || "";
 const SECRET_KEY = process.env.TENCENT_SECRET_KEY || "";
 const CAPTCHA_ENDPOINT =
-  process.env.TENCENT_CAPTCHA_ENDPOINT || "captcha.intl.tencentcloudapi.com";
+  process.env.TENCENT_CAPTCHA_ENDPOINT || "captcha.sa-saopaulo.tencentcloudapi.com";
+const CAPTCHA_REGION = process.env.TENCENT_CAPTCHA_REGION || "sa-saopaulo";
 const DEMO_MODE = String(process.env.DEMO_MODE || "false").toLowerCase() === "true";
 const VERIFY_TIMEOUT_MS = Number(process.env.VERIFY_TIMEOUT_MS || 3000);
 const VERIFY_RETRY_COUNT = Number(process.env.VERIFY_RETRY_COUNT || 1);
@@ -144,7 +145,7 @@ async function verifyWithTencent({ ticket, randstr, userIp }) {
       "X-TC-Version": version,
       "X-TC-Timestamp": String(timestamp),
       "X-TC-Nonce": String(nonce),
-      "X-TC-Region": ""
+      "X-TC-Region": CAPTCHA_REGION
     },
     body
   });
@@ -193,7 +194,9 @@ async function verifyWithRetry({ ticket, randstr, userIp }) {
 app.get("/api/config", (_req, res) => {
   res.json({
     appId: APP_ID,
-    demoMode: DEMO_MODE
+    demoMode: DEMO_MODE,
+    captchaEndpoint: CAPTCHA_ENDPOINT,
+    captchaRegion: CAPTCHA_REGION
   });
 });
 

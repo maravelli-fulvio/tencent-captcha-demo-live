@@ -25,7 +25,8 @@ TENCENT_SECRET_ID=seu_secret_id
 TENCENT_SECRET_KEY=seu_secret_key
 TENCENT_CAPTCHA_APP_ID=seu_app_id
 TENCENT_CAPTCHA_APP_SECRET_KEY=seu_app_secret_key
-TENCENT_CAPTCHA_ENDPOINT=captcha.intl.tencentcloudapi.com
+TENCENT_CAPTCHA_ENDPOINT=captcha.sa-saopaulo.tencentcloudapi.com
+TENCENT_CAPTCHA_REGION=sa-saopaulo
 ```
 
 ## Deploy rápido (Render)

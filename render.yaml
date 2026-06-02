@@ -13,7 +13,9 @@ services:
       - key: DEMO_MODE
         value: "false"
       - key: TENCENT_CAPTCHA_ENDPOINT
-        value: captcha.intl.tencentcloudapi.com
+        value: captcha.sa-saopaulo.tencentcloudapi.com
+      - key: TENCENT_CAPTCHA_REGION
+        value: sa-saopaulo
       - key: TENCENT_SECRET_ID
         sync: false
       - key: TENCENT_SECRET_KEY
