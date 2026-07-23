@@ -6,6 +6,7 @@ const submitBtn = document.getElementById("submit-btn");
 const form = document.getElementById("demo-form");
 const modePill = document.getElementById("mode-pill");
 const sdkPill = document.getElementById("sdk-pill");
+const archPill = document.getElementById("arch-pill");
 const latencyChallengeEl = document.getElementById("latency-challenge");
 const latencyBackendEl = document.getElementById("latency-backend");
 const latencyTotalEl = document.getElementById("latency-total");
@@ -72,14 +73,24 @@ async function loadConfig() {
     const res = await fetch("/api/config");
     appConfig = await res.json();
     modePill.textContent = appConfig.demoMode ? "Modo: DEMO" : "Modo: PRODUCAO";
+    if (archPill) {
+      archPill.textContent = appConfig.verifyBaseUrl
+        ? "Arquitetura: Front Render + Verify CVM-SP"
+        : "Arquitetura: Frontend + API + Tencent";
+    }
     writeLog("Configuração carregada", appConfig);
   } catch (error) {
     writeLog("Falha ao carregar configuração", { error: error.message });
   }
 }
 
+function verifyEndpoint() {
+  const base = (appConfig.verifyBaseUrl || "").replace(/\/$/, "");
+  return base ? `${base}/api/verify-captcha` : "/api/verify-captcha";
+}
+
 async function verifyCaptcha(ticket, randstr) {
-  const res = await fetch("/api/verify-captcha", {
+  const res = await fetch(verifyEndpoint(), {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ ticket, randstr })
@@ -87,9 +98,11 @@ async function verifyCaptcha(ticket, randstr) {
   return res.json();
 }
 
-/** Gera comando curl com ticket/randstr atuais (válido no zsh/bash). Usa o mesmo origin da página. */
+/** Gera comando curl com ticket/randstr atuais (válido no zsh/bash). */
 function buildCurlVerifyLatencyCommand(ticket, randstr) {
-  const url = `${window.location.origin}/api/verify-captcha`;
+  const url = verifyEndpoint().startsWith("http")
+    ? verifyEndpoint()
+    : `${window.location.origin}/api/verify-captcha`;
   const body = JSON.stringify({ ticket, randstr });
   return (
     `curl -s -w "\\ntime_total_s: %{time_total}\\n" ` +
@@ -223,9 +236,16 @@ async function startCaptchaValidation(flowMode) {
 
     const backendStart = performance.now();
     const result = await verifyCaptcha(tokens.ticket, tokens.randstr);
-    const backendMs = performance.now() - backendStart;
+    const roundtripMs = performance.now() - backendStart;
+    // Prefer server-side CVM→CAPTCHA timing when present (true technical latency).
+    const backendMs =
+      typeof result.backendLatencyMs === "number" ? result.backendLatencyMs : roundtripMs;
     const totalMs = challengeMs + backendMs;
-    writeLog("Resposta do backend", result);
+    writeLog("Resposta do backend", {
+      ...result,
+      verifyEndpoint: verifyEndpoint(),
+      browserRoundtripMs: Math.round(roundtripMs)
+    });
     if (typeof humanMs === "number") {
       writeLog("Tempo de interação humana (não entra na latência técnica)", {
         humanInteractionMs: Math.round(humanMs)

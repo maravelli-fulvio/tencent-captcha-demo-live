@@ -26,3 +26,5 @@ services:
         sync: false
       - key: POC_STRUCTURED_LOG
         value: "false"
+      - key: VERIFY_BASE_URL
+        value: "https://43-166-66-237.sslip.io"

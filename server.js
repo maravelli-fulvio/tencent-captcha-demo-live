@@ -21,6 +21,9 @@ const VERIFY_TIMEOUT_MS = Number(process.env.VERIFY_TIMEOUT_MS || 3000);
 const VERIFY_RETRY_COUNT = Number(process.env.VERIFY_RETRY_COUNT || 1);
 const POC_STRUCTURED_LOG =
   String(process.env.POC_STRUCTURED_LOG || "false").toLowerCase() === "true";
+// When set, browser calls verify on SP CVM (HTTPS) instead of Render Oregon.
+// Example: https://43-166-66-237.sslip.io
+const VERIFY_BASE_URL = String(process.env.VERIFY_BASE_URL || "").replace(/\/$/, "");
 
 function pocStructuredLog(fields) {
   if (!POC_STRUCTURED_LOG) return;
@@ -196,7 +199,11 @@ app.get("/api/config", (_req, res) => {
     appId: APP_ID,
     demoMode: DEMO_MODE,
     captchaEndpoint: CAPTCHA_ENDPOINT,
-    captchaRegion: CAPTCHA_REGION
+    captchaRegion: CAPTCHA_REGION,
+    verifyBaseUrl: VERIFY_BASE_URL || null,
+    architecture: VERIFY_BASE_URL
+      ? "Frontend(Render) + Verify(CVM sa-saopaulo) + CAPTCHA API SP"
+      : "Frontend+API(Render) + CAPTCHA API SP"
   });
 });
 
